@@ -13,9 +13,7 @@ authors = [
   { name = "Luis Ignacio Reyes Castro", email = "luis.i.reyes.castro@gmail.com" },
 ]
 dependencies = [
-  "Babel>=2.17.0",
   "GitPython>=3.1.45",
-  "phonenumbers>=9.0.13",
   "tiktoken>=0.9.0",
 ]
 
