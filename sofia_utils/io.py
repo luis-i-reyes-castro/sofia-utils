@@ -36,10 +36,10 @@ def encode_image( image_path : str | Path) -> str | None :
         with open( image_path, "rb") as image_file:
             return b64encode(image_file.read()).decode('utf-8')
     except FileNotFoundError:
-        print(f"Error: The file {image_path} was not found.")
+        print(f"❌ Error: File {image_path} not found")
         return None
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"❌ Error: {e}")
         return None
 
 def ensure_dir( dir_name : str | Path) -> None :
@@ -125,7 +125,7 @@ def load_file_as_binary( filepath : str | Path) -> bytes | None :
         with open( filepath, "rb") as file :
             return file.read()
     except FileNotFoundError :
-        print(f"Error: File {filepath} not found")
+        print(f"❌ Error: File {filepath} not found")
     return
 
 def load_file_as_string( filepath : str | Path) -> str | None :
@@ -136,7 +136,7 @@ def load_file_as_string( filepath : str | Path) -> str | None :
         with open( filepath, 'r', encoding = 'utf-8') as f :
             return f.read()
     except FileNotFoundError :
-        print(f"Error: File {filepath} not found")
+        print(f"❌ Error: File {filepath} not found")
     return
 
 def load_json_file( filepath : str | Path) -> Any | None :
@@ -152,7 +152,7 @@ def load_json_file( filepath : str | Path) -> Any | None :
         return json.loads( data, object_pairs_hook = OrderedDict)
     
     except FileNotFoundError :
-        print(f"Error: File {filepath} not found")
+        print(f"❌ Error: File {filepath} not found")
     
     return
 
