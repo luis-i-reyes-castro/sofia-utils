@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Utilities for file input/output (IO)
+Utilities for file input/output (IO). Mostly wrappers of pathlib.
 """
 
 import json
@@ -11,53 +11,83 @@ from glob import glob
 from pathlib import Path
 from typing import Any
 
-""" Default JSON Indentation Level """
+
 JSON_INDENT = 4
+""" Default JSON Indentation Level """
 
 class LoadMode(Enum) :
+    """
+    Loading Mode: GROUP | MERGE
+    """
     GROUP = "group"
     MERGE = "merge"
+
 
 def clean_filename( filename         : str | Path,
                     remove_prefix    : bool = True,
                     remove_extension : bool = True ) -> str :
+    """
+    Clean filename by removing prefix and/or extension \\
+    Args:
+        remove_prefix    : Whether to remove the filename's first prefix
+        remove_extension : Whether to remove the filename's extension
+    Returns:
+        Filename with prefix and/or extension removed
+    """
+    fname_str = Path(filename).name
+    if ( "_" in fname_str ) and remove_prefix :
+        fname_str = "_".join( fname_str.split("_")[1:] )
+    if ( "." in fname_str ) and remove_extension :
+        fname_str = "".join( fname_str.split(".")[:1] )
     
-    new_fname = Path(filename).name
-    if remove_prefix :
-        new_fname = "_".join( new_fname.split("_")[1:] )
-    if remove_extension :
-        new_fname = "".join( new_fname.split(".")[:1] )
-    
-    return new_fname
+    return fname_str
 
 def encode_image( image_path : str | Path) -> str | None :
-    """Encode the image to base64."""
-    try:
-        with open( image_path, "rb") as image_file:
-            return b64encode(image_file.read()).decode('utf-8')
-    except FileNotFoundError:
+    """
+    Encode an image to base64 \\
+    Args:
+        image_path : Image name or path
+    Returns:
+        * If image found: String containing the image's base64 encoding
+        * If image not found: None
+    """
+    try :
+        image_bytes = Path(image_path).read_bytes()
+        return b64encode(image_bytes).decode('utf-8')
+    
+    except FileNotFoundError :
         print(f"❌ Error: File {image_path} not found")
-        return None
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        return None
+    except Exception as ex :
+        print(f"❌ Error: {ex}")
+    
+    return None
 
-def ensure_dir( dir_name : str | Path) -> None :
+def ensure_dir( dirpath : str | Path) -> None :
     """
-    Ensure directory exists.
+    Ensure directory exists \\
+    Args:
+        dirpath : Directory name or path
     """
-    Path(dir_name).mkdir( parents = True, exist_ok = True)
+    Path(dirpath).mkdir( parents = True, exist_ok = True)
     return
 
 def exists_file( filepath : str | Path) -> bool :
     """
-    Check if a file exists.
+    Check if a file exists \\
+    Args:
+        filepath : File name or path
+    Returns:
+        True if file path exists, False otherwise.
     """
     return Path(filepath).exists()
 
 def extract_code_block( data : str) -> str :
     """
-    Extract content within first code block in string. If no code block found, fall back to assuming entire string is code.
+    Extract content within first code block in string. If no code block found, fall back to assuming entire string is code. \\
+    Args:
+        data: Input string
+    Returns:
+        Output string
     """
     data  = data.strip()
     lines = data.split('\n')
@@ -93,11 +123,17 @@ def extract_code_block( data : str) -> str :
     
     return '\n'.join(result_lines)
 
-def list_files_starting_with( directory : str | Path,
-                              prefix : str,
+def list_files_starting_with( directory  : str | Path,
+                              prefix     : str,
                               extensions : str | list[str] | tuple[str] ) -> list[str] :
     """
-    List files in a directory starting with a given prefix and extension(s).
+    List files in a directory starting with a given prefix and extension(s). \\
+    Args:
+        directory  : Directory name or path
+        prefix     : Target file prefix
+        extensions : Target file extension(s)
+    Returns:
+        Sorted list of filepaths (alphabetical order)
     """
     if isinstance( extensions, str) :
         ext_candidates = [ extensions ]
@@ -105,7 +141,7 @@ def list_files_starting_with( directory : str | Path,
             ext_candidates.append('jsonc')
     
     elif isinstance( extensions, list) or isinstance( extensions, tuple) :
-        ext_candidates = list( set(extensions) )
+        ext_candidates = set(extensions)
     
     else :
         msg = f"Invalid 'extensions' type: {type(extensions)}"
@@ -119,37 +155,47 @@ def list_files_starting_with( directory : str | Path,
 
 def load_file_as_binary( filepath : str | Path) -> bytes | None :
     """
-    Load file as binary data
+    Load file as bytes object (binary data) \\
+    Args:
+        filepath: File name or path
+    Returns:
+        * If file found then bytes object
+        * If file not found then None
     """
     try :
-        with open( filepath, "rb") as file :
-            return file.read()
+        return Path(filepath).read_bytes()
     except FileNotFoundError :
         print(f"❌ Error: File {filepath} not found")
     return
 
 def load_file_as_string( filepath : str | Path) -> str | None :
     """
-    Load any file as string
+    Load file as string \\
+    Args:
+        filepath: File name or path
+    Returns:
+        * If file found then string
+        * If file not found then None
     """
     try :
-        with open( filepath, 'r', encoding = 'utf-8') as f :
-            return f.read()
+        return Path(filepath).read_text( encoding = "utf-8")
     except FileNotFoundError :
         print(f"❌ Error: File {filepath} not found")
     return
 
 def load_json_file( filepath : str | Path) -> Any | None :
     """
-    Load JSON file data
+    Deserialize JSON or JSONC file \\
+    Args:
+        filepath: File name or path
+    Returns:
+        * If file found then deserialized content
+        * If file not found then None
     """
     filepath = Path(filepath)
     try :
-        with open( filepath, 'r', encoding = 'utf-8') as f :
-            data = f.read()
-        if filepath.suffix == '.jsonc' :
-            data = strip_jsonc_comments(data)
-        return json.loads( data, object_pairs_hook = OrderedDict)
+        data = filepath.read_text( encoding = "utf-8")
+        return load_json_string( data, filepath.suffix.lower() == '.jsonc')
     
     except FileNotFoundError :
         print(f"❌ Error: File {filepath} not found")
@@ -161,8 +207,15 @@ def load_json_dicts_starting_with( directory : str | Path,
                                    mode      : LoadMode
                                  ) -> OrderedDict :
     """
-    Load all JSON dict-type files in a directory starting with a given prefix
-    and combine them or group them into one OrderedDict.
+    Load all JSON/JSONC dict-type files in a directory starting with a given prefix \\
+    Args:
+        directory : Directory name or path
+        prefix    : Target file prefix
+        mode      : Loading mode (group or merge)
+    Returns:
+        Ordered dict depending on loading mode:
+        * LoadMode.GROUP: Maps clean filenames to file contents
+        * LoadMode.MERGE: Union of the contents of all files
     """
     result = OrderedDict()
     files  = list_files_starting_with( directory, prefix, "json")
@@ -183,8 +236,14 @@ def load_json_lists_starting_with( directory : str | Path,
                                    mode      : LoadMode
                                  ) -> list[Any] | OrderedDict[ str: Any] :
     """
-    Load all JSON list-type files in a directory starting with a given prefix
-    and combine them into one list or group them into one OrderedDict.
+    Load all JSON list-type files in a directory starting with a given prefix \\
+    Args:
+        directory : Directory name or path
+        prefix    : Target file prefix
+        mode      : Loading mode (group or merge)
+    Returns:
+        * LoadMode.GROUP: Ordered dict mapping clean filenames to file contents
+        * LoadMode.MERGE: Single list with the combined contents of all files
     """
     result = None
     match mode :
@@ -207,7 +266,12 @@ def load_json_lists_starting_with( directory : str | Path,
 
 def load_json_string( data : str, comments : bool = False ) -> Any :
     """
-    Load JSON from a string, handling markdown code blocks if present.
+    Deserialize JSON/JSONC string \\
+    Args:
+        data     : JSON/JSONC string
+        comments : Whether it is necessary to strip JSONC comments
+    Returns:
+        Deserialized content
     """
     if comments :
         data = strip_jsonc_comments(data)
@@ -215,17 +279,25 @@ def load_json_string( data : str, comments : bool = False ) -> Any :
 
 def remove_indentation( data : str) -> str :
     """
-    Remove indentation line-by-line
+    Remove indentation line-by-line \\
+    Args:
+        data : Input string
+    Returns:
+        String with no indentation at the beginning of each line
     """
     lines_all = data.split('\n')
     lines_new = []
     for line in lines_all :
-        lines_new.append(line.strip())
+        lines_new.append(line.lstrip())
     return '\n'.join(lines_new)
 
 def strip_jsonc_comments( data : str) -> str :
     """
-    Remove JSONC-style comments (both inline '//' and block '/* */') from text.
+    Remove JSONC-style comments (both inline '//' and block '/* */') from string. \\
+    Args:
+        data : Input string
+    Returns:
+        JSON-compatible string (with no JSONC-style comments)
     """
     result                 = []
     in_string              = False
@@ -282,27 +354,41 @@ def strip_jsonc_comments( data : str) -> str :
     
     return ''.join(result)
 
-def write_to_file( filepath : str | Path, data : str) -> None :
+def write_to_file( filepath : str | Path, data : str) -> int :
     """
-    Write data to file
+    Write text data to file \\
+    Args:
+        filepath : Output file name or path
+        data     : Text to write
+    Returns:
+        Number of characters written to file
     """
-    with open( filepath, 'w', encoding = 'utf-8') as f :
-        f.write(data)
-    return
+    return Path(filepath).write_text( data, encoding = "utf-8")
 
 def write_to_json_file( filepath : str | Path,
                         data     : Any,
-                        indent   : int | None = JSON_INDENT) -> None :
+                        indent   : int | None = JSON_INDENT) -> int :
     """
-    Write data to JSON file
+    Serialize object as JSON file \\
+    Args:
+        filepath : Output file name or path
+        data     : Object to serialize
+        indent   : Number of indentation spaces
+    Returns:
+        Number of characters written to file
     """
-    with open( filepath, 'w', encoding = 'utf-8') as f :
-        json.dump( data, f, indent = indent, ensure_ascii = False)
-    return
+    data_str = write_to_json_string( data, indent)
+    
+    return Path(filepath).write_text( data_str, encoding = "utf-8")
 
 def write_to_json_string( data : Any, indent : int | None = JSON_INDENT) -> str :
     """
-    Write data to JSON string
+    Serialize object as JSON string \\
+    Args:
+        data   : Object to serialize
+        indent : Number of indentation spaces
+    Returns:
+        JSON-compatible string
     """
     return json.dumps( data,
                        ensure_ascii = False,
