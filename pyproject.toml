@@ -12,7 +12,10 @@ license = { file = "LICENSE" }
 authors = [
   { name = "Luis Ignacio Reyes Castro", email = "luis.i.reyes.castro@gmail.com" },
 ]
-dependencies = []
+dependencies = [
+  "pydantic>=2.12.5",
+  "tiktoken>=0.9.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]

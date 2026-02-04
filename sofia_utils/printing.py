@@ -4,6 +4,7 @@ Utilities for printing and formatting string
 """
 
 from re import match
+from pydantic import ValidationError
 from typing import Any
 
 
@@ -50,6 +51,29 @@ def print_sep( width : int = 80) -> None :
         width : Number of '-' characters in separator
     """
     print( '-' * width )
+    return
+
+def print_validation_errors( ve : ValidationError, indent : int = 4) -> None :
+    """
+    Pretty-print pydantic validation errors with indentation \\
+    Args:
+        validation_error : ValidationError object raised by pydantic
+        indent           : Indentation level when printing
+    """
+    
+    for error in ve.errors() :
+        
+        location_raw = error.get( "loc", ())
+        if location_raw :
+            location = str(" -> ").join( str(part) for part in location_raw )
+        else :
+            location = "<root>"
+        
+        message = error.get( "msg", "Validation error")
+        
+        print_ind( f"Location : {location}", indent)
+        print_ind( f"Message  : {message}",  indent)
+    
     return
 
 def str_ind( argument     : str,
