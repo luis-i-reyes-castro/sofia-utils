@@ -13,6 +13,7 @@ authors = [
   { name = "Luis Ignacio Reyes Castro", email = "luis.i.reyes.castro@gmail.com" },
 ]
 dependencies = [
+  "Pillow>=12.1.1",
   "pydantic>=2.12.5",
   "tiktoken>=0.9.0",
 ]
