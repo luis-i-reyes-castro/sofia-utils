@@ -402,3 +402,25 @@ def write_to_json_string( data : Any, indent : int | None = JSON_INDENT) -> str 
                        ensure_ascii = False,
                        indent       = indent,
                        separators   = (",",":") if indent is None else None )
+
+def write_to_pseudo_json( data : str | Any) -> str :
+    """
+    Convert JSON-like content to compact JSON-like string and strip `\\"`. \\
+    Args:
+        data : JSON string or JSON-serializable object
+    Returns:
+        Compact JSON-like string. If input is a non-JSON string, returns it
+        unchanged except for removing escaped double quotes (`\\"`).
+    """
+    if data is None or ( isinstance( data, str) and not data ) :
+        return ""
+    
+    if isinstance( data, str) :
+        try :
+            data_obj = load_json_string(data)
+        except Exception :
+            return data.replace( '\"', '')
+    else :
+        data_obj = data
+    
+    return write_to_json_string( data_obj, indent = None).replace( '\"', '')
