@@ -1,48 +1,31 @@
-#!/usr/bin/env python3
 """
 Utilities for image processing
 """
 
 from io import BytesIO
-from mimetypes import guess_type
-from pathlib import Path
-
 from PIL import Image, ImageOps
 
 
-ALLOWED_EXTENSIONS = { ".jpg", ".jpeg", ".png" }
+ALLOWED_MIME = { "image/jpeg" : "JPEG", "image/png" : "PNG" }
 
 
-def resize_image( filename      : str,
+def resize_image( mime_type     : str,
                   image_bytes   : bytes,
-                  size_limit_kb : int = 1024 ) -> bytes :
+                  size_limit_kb : int = 512 ) -> bytes :
     """
     Resize image if needed to fit within size limit \\
     Args:
-        filename      : File name with extension (.jpg, .jpeg, .png)
+        mime_type     : Image MIME type ("image/jpeg" or "image/png")
         image_bytes   : Image content as bytes
-        size_limit_kb : Size limit in kilobytes (default 1024)
+        size_limit_kb : Size limit in kilobytes
     Returns:
         Image bytes in the same MIME type
     """
-    ext = Path(filename).suffix.lower()
-    if ext not in ALLOWED_EXTENSIONS :
-        ext_list = ", ".join(
-            [ f"*{ext_item}" for ext_item in sorted(ALLOWED_EXTENSIONS) ]
-        )
-        e_msg = (
-            "In resize_image: Unsupported filename extension. "
-            f"Supported extensions are: {ext_list}"
-        )
-        raise ValueError(e_msg)
-    
-    mime_type   = guess_type(filename)[0]
-    format_map  = { "image/jpeg" : "JPEG", "image/png" : "PNG" }
-    format_name = format_map.get(mime_type)
+    format_name = ALLOWED_MIME.get(mime_type)
     if not format_name :
         raise ValueError("In resize_image: Unsupported mime type")
     
-    if not ( isinstance( image_bytes, bytes) and image_bytes ) :
+    if not ( image_bytes and isinstance( image_bytes, bytes) ) :
         raise ValueError("In resize_image: No image bytes.")
     
     if not ( isinstance( size_limit_kb, int) and ( size_limit_kb > 0 ) ) :
