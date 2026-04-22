@@ -1,7 +1,8 @@
-#!/usr/bin/env python3
 """
 Utilities for printing and formatting string
 """
+
+from __future__ import annotations
 
 from re import match
 from pydantic import ValidationError

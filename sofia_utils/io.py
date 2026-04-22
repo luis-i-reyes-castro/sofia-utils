@@ -9,12 +9,12 @@ from collections import OrderedDict
 from enum import Enum
 from glob import glob
 from pathlib import Path
-from typing import ( Any,
-                     Callable )
+from typing import Any
 
 
 JSON_INDENT = 4
 """ Default JSON Indentation Level """
+
 
 class LoadMode(Enum) :
     """
@@ -22,27 +22,6 @@ class LoadMode(Enum) :
     """
     GROUP = "group"
     MERGE = "merge"
-
-
-class SafeDict(dict) :
-    """
-    Dict with configurable fallback for missing keys.
-    """
-    DEFAULT_FACTORY = staticmethod( lambda _key : None )
-    
-    def __init__(
-        self,
-        *args,
-        default_factory : Callable[ [str], Any] | None = None,
-        **kwargs,
-    ) -> None :
-        
-        super().__init__( *args, **kwargs )
-        self._default_factory = default_factory or self.DEFAULT_FACTORY
-    
-    def __missing__( self, key : str) -> Any :
-        
-        return self._default_factory(key)
 
 
 def clean_filename( filename         : str | Path,

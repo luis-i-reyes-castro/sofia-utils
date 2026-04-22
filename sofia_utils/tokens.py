@@ -3,6 +3,8 @@
 Utilities for counting tokens
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 from sys import argv
 from tiktoken import encoding_for_model

@@ -2,6 +2,8 @@
 Utilities for generating stamps (UUIDs, timestamps, sha256, etc.)
 """
 
+from __future__ import annotations
+
 from datetime import ( datetime,
                        timezone,
                        timedelta )
