@@ -20,21 +20,23 @@ MIN_B64_IMG_ENCONDING_LENGTH = 2000
 
 
 def get_qualname(
-    default : str = 'Location_Unknown_Inspection_Error'
+    default : str | None = None,
 ) -> str :
     """
-    Get the name of the function calling this function \\
+    Get the qualified name of the function calling this function \\
     Args:
-        default : Value to return when the calling function cannot be inspected
+        default : Non-empty string to return in case the
+        calling function cannot be inspected
     Returns:
-        Caller's qualified name, e.g., `SomeClass.some_method`
+        Caller's qualified name, e.g., `SomeClass.some_method`,
+        or the default value passed, or an error message.
     """
     frame = currentframe()
     try :
         return (
             frame.f_back.f_code.co_qualname
             if ( frame and frame.f_back ) else
-            default
+            ( default or "Error_Qualified_Name_Not_Available" )
         )
     finally :
         del frame
