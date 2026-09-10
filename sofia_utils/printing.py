@@ -4,6 +4,7 @@ Utilities for printing and formatting string
 
 from __future__ import annotations
 
+from inspect import currentframe
 from re import match
 from typing import Any
 
@@ -18,9 +19,31 @@ MIN_B64_IMG_ENCONDING_LENGTH = 2000
 """ Minimum Base64 image encoding length. Strings of this length or longer will be suspected to being Base64 image encondings. """
 
 
-def print_ind( argument     : str,
-               indent_level : int = 0,
-               indent_type  : str = DEFAULT_INDENT ) -> None :
+def get_qualname(
+    default : str = 'Location_Unknown_Inspection_Error'
+) -> str :
+    """
+    Get the name of the function calling this function \\
+    Args:
+        default : Value to return when the calling function cannot be inspected
+    Returns:
+        Caller's qualified name, e.g., `SomeClass.some_method`
+    """
+    frame = currentframe()
+    try :
+        return (
+            frame.f_back.f_code.co_qualname
+            if ( frame and frame.f_back ) else
+            default
+        )
+    finally :
+        del frame
+
+def print_ind(
+    argument     : str,
+    indent_level : int = 0,
+    indent_type  : str = DEFAULT_INDENT,
+) -> None :
     """
     Print indented string \\
     Args:
@@ -31,9 +54,11 @@ def print_ind( argument     : str,
     print(str_ind( argument, indent_level, indent_type))
     return
 
-def print_recursively( data         : Any,
-                       indent_level : int = 0,
-                       indent_type  : str = DEFAULT_INDENT ) -> None :
+def print_recursively(
+    data         : Any,
+    indent_level : int = 0,
+    indent_type  : str = DEFAULT_INDENT,
+) -> None :
     """
     Print string representation of object, recursively parsing contents. \\
     Args:
@@ -53,9 +78,11 @@ def print_sep( width : int = 64) -> None :
     print( '-' * width )
     return
 
-def str_ind( argument     : str,
-             indent_level : int = 0,
-             indent_type  : str = DEFAULT_INDENT ) -> str :
+def str_ind(
+    argument     : str,
+    indent_level : int = 0,
+    indent_type  : str = DEFAULT_INDENT,
+) -> str :
     """
     Indent string \\
     Args:
@@ -82,10 +109,12 @@ def str_ind( argument     : str,
     
     return '\n'.join(result)
 
-def str_recursively( data         : Any,
-                     indent_level : int = 0,
-                     indent_type  : str = DEFAULT_INDENT,
-                     _visited     : set | None = None ) -> str :
+def str_recursively(
+    data         : Any,
+    indent_level : int = 0,
+    indent_type  : str = DEFAULT_INDENT,
+    _visited     : set | None = None,
+) -> str :
     """
     Produce string representation of object, recursively parsing contents. \\
     Args:
