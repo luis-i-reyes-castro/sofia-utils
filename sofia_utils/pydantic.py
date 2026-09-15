@@ -39,8 +39,9 @@ type UnixTS      = Annotated[ str, Field( pattern = r"^[1-9][0-9]*$")]
 """ Unix timestamp """
 
 
-# Add MIME type for voicenotes because `python:3.12-slim` does not include it
-mimetypes.add_type( "audio/ogg", ".ogg")
+# Add MIME types used by WhatsApp that `python:3.12-slim` does not include
+mimetypes.add_type( "audio/ogg",  ".ogg" )
+mimetypes.add_type( "image/webp", ".webp")
 
 def validate_mime_type( value : str) -> str :
     """
