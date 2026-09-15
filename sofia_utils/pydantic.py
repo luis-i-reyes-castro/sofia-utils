@@ -4,7 +4,7 @@ Pydantic-related Helpers
 
 from __future__ import annotations
 
-from mimetypes import guess_extension
+import mimetypes
 from pydantic import (
     AfterValidator,
     BaseModel,
@@ -19,6 +19,9 @@ from typing import (
 
 from .printing import print_ind
 
+
+# -----------------------------------------------------------------------------------------
+# TYPES
 
 type NE_str      = Annotated[ str, Field( pattern = r"^[^\s].+$")]
 """ Non-empty string (at least 2 chars and first char cannot be whitespace) """
@@ -36,13 +39,16 @@ type UnixTS      = Annotated[ str, Field( pattern = r"^[1-9][0-9]*$")]
 """ Unix timestamp """
 
 
+# Add MIME type for voicenotes because `python:3.12-slim` does not include it
+mimetypes.add_type( "audio/ogg", ".ogg")
+
 def validate_mime_type( value : str) -> str :
     """
     Validate MIME type
     Args:
         value : MIME type
     Returns:
-        Cleaned MIME type string (stripped, lowercase, parameters removed)
+        Cleaned MIME type string (lowercase, stripped, codec removed)
     Raises:
         ValueError : If MIME type is invalid
     """
@@ -51,11 +57,11 @@ def validate_mime_type( value : str) -> str :
         and
         (
             cleaned_value := (
-                value.strip().lower().split( ";", maxsplit = 1)[0].strip()
+                value.lower().strip().split( ";", maxsplit = 1)[0].strip()
             )
         )
         and
-        guess_extension(cleaned_value)
+        mimetypes.guess_extension(cleaned_value)
     ) :
         return cleaned_value
     
@@ -64,6 +70,9 @@ def validate_mime_type( value : str) -> str :
 type MIME_Type = Annotated[ str, AfterValidator(validate_mime_type)]
 """ MIME Type """
 
+
+# -----------------------------------------------------------------------------------------
+# FUNCTIONS
 
 def print_validation_errors( ve : ValidationError, indent : int = 1) -> None :
     """
