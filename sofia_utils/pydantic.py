@@ -29,6 +29,9 @@ type NE_str      = Annotated[ str, Field( pattern = r"^[^\s].+$")]
 type NE_var_name = Annotated[ str, Field( pattern = r"^[A-Za-z\_]\w+$")]
 """ Non-empty variable name (at least 2 chars) """
 
+type NO_WS_str   = Annotated[ str, Field( pattern = r"^\S+$")]
+""" Non-empty no-whitespace string """
+
 type NumericID   = Annotated[ str, Field( pattern = r"^[0-9]+$")]
 """ Numeric ID """
 
