@@ -23,6 +23,18 @@ from .printing import print_ind
 # -----------------------------------------------------------------------------------------
 # TYPES
 
+type Base64_str  = Annotated[
+    str,
+    Field(
+        min_length = 4,
+        pattern    = (
+            r"^(?:[A-Za-z0-9+/]{4})*"
+            r"(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
+        ),
+    ),
+]
+""" Non-empty canonical standard Base64-encoded string """
+
 type NE_str      = Annotated[ str, Field( pattern = r"^[^\s].+$")]
 """ Non-empty string (at least 2 chars and first char cannot be whitespace) """
 
