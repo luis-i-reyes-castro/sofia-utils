@@ -35,8 +35,8 @@ type Base64_str  = Annotated[
 ]
 """ Non-empty canonical standard Base64-encoded string """
 
-type NE_str      = Annotated[ str, Field( pattern = r"^[^\s].+$")]
-""" Non-empty string (at least 2 chars and first char cannot be whitespace) """
+type NE_str      = Annotated[ str, Field( pattern = r"^[^\s].*$")]
+""" Non-empty string (at least one char and first char is not whitespace) """
 
 type NE_var_name = Annotated[ str, Field( pattern = r"^[A-Za-z\_]\w+$")]
 """ Non-empty variable name (at least 2 chars) """
