@@ -5,8 +5,10 @@ Pydantic-related Helpers
 from __future__ import annotations
 
 import mimetypes
+import re
 from pydantic import (
     AfterValidator,
+    BeforeValidator,
     BaseModel,
     Field,
     ValidationError,
@@ -22,6 +24,14 @@ from .printing import print_ind
 
 # -----------------------------------------------------------------------------------------
 # TYPES
+
+def normalize_numeric_id( value : str) -> str :
+    
+    normalized = re.sub( "[^0-9]+", "", value)
+    if normalized :
+        return normalized
+
+    raise ValueError(f"Invalid number or numeric ID; value = '{value}'.")
 
 type Base64_str  = Annotated[
     str,
@@ -44,7 +54,11 @@ type NE_var_name = Annotated[ str, Field( pattern = r"^[A-Za-z\_]\w+$")]
 type NO_WS_str   = Annotated[ str, Field( pattern = r"^\S+$")]
 """ Non-empty no-whitespace string """
 
-type NumericID   = Annotated[ str, Field( pattern = r"^[0-9]+$")]
+type NumericID   = Annotated[
+    str,
+    Field( pattern = r"^[0-9]+$"),
+    BeforeValidator(normalize_numeric_id)
+]
 """ Numeric ID """
 
 type SHA256_Hex  = Annotated[ str, Field( pattern = r"^[A-Fa-f0-9]{64}$")]
