@@ -24,9 +24,11 @@ class LoadMode(Enum) :
     MERGE = "merge"
 
 
-def clean_filename( filename         : str | Path,
-                    remove_prefix    : bool = True,
-                    remove_extension : bool = True ) -> str :
+def clean_filename(
+    filename         : str | Path,
+    remove_prefix    : bool = True,
+    remove_extension : bool = True,
+) -> str :
     """
     Clean filename by removing prefix and/or extension \\
     Args:
@@ -83,7 +85,8 @@ def exists_file( filepath : str | Path) -> bool :
 
 def extract_code_block( data : str) -> str :
     """
-    Extract content within first code block in string. If no code block found, fall back to assuming entire string is code. \\
+    Extract content within first code block in string.
+    If no code block found, fall back to assuming entire string is code. \\
     Args:
         data: Input string
     Returns:
@@ -123,9 +126,11 @@ def extract_code_block( data : str) -> str :
     
     return '\n'.join(result_lines)
 
-def list_files_starting_with( directory  : str | Path,
-                              prefix     : str,
-                              extensions : str | list[str] | tuple[str] ) -> list[str] :
+def list_files_starting_with(
+    directory  : str | Path,
+    prefix     : str,
+    extensions : str | list[str] | tuple[str],
+) -> list[str] :
     """
     List files in a directory starting with a given prefix and extension(s). \\
     Args:
@@ -210,10 +215,11 @@ def load_json_file( filepath : str | Path) -> Any | None :
     
     return
 
-def load_json_dicts_starting_with( directory : str | Path,
-                                   prefix    : str,
-                                   mode      : LoadMode
-                                 ) -> OrderedDict :
+def load_json_dicts_starting_with(
+    directory : str | Path,
+    prefix    : str,
+    mode      : LoadMode,
+) -> OrderedDict :
     """
     Load all JSON/JSONC dict-type files in a directory starting with a given prefix \\
     Args:
@@ -239,10 +245,11 @@ def load_json_dicts_starting_with( directory : str | Path,
     
     return result
 
-def load_json_lists_starting_with( directory : str | Path,
-                                   prefix    : str,
-                                   mode      : LoadMode
-                                 ) -> list[Any] | OrderedDict[ str: Any] :
+def load_json_lists_starting_with(
+    directory : str | Path,
+    prefix    : str,
+    mode      : LoadMode,
+) -> list[Any] | OrderedDict[ str: Any] :
     """
     Load all JSON list-type files in a directory starting with a given prefix \\
     Args:
@@ -374,9 +381,11 @@ def write_to_file( filepath : str | Path, data : str) -> int :
     """
     return Path(filepath).write_text( data, encoding = "utf-8")
 
-def write_to_json_file( filepath : str | Path,
-                        data     : Any,
-                        indent   : int | None = JSON_INDENT) -> int :
+def write_to_json_file(
+    filepath : str | Path,
+    data     : Any,
+    indent   : int | None = JSON_INDENT,
+) -> int :
     """
     Serialize object as JSON file \\
     Args:
@@ -390,19 +399,55 @@ def write_to_json_file( filepath : str | Path,
     
     return Path(filepath).write_text( data_str, encoding = "utf-8")
 
-def write_to_json_string( data : Any, indent : int | None = JSON_INDENT) -> str :
+def _redact_data_uris( data : Any) -> Any :
+    """
+    Replace base64 data-URI payloads with an ellipsis \\
+    Args:
+        data : Object to scan
+    Returns:
+        Copy of data with strings that start with `data:...;base64,` shortened
+    """
+    if isinstance( data, str) :
+        head, marker, _payload = data.partition(";base64,")
+        if marker and head.startswith("data:") and ( "," not in head ) :
+            return f"{head};base64,..."
+        return data
+    
+    if isinstance( data, list) :
+        return [ _redact_data_uris(item) for item in data ]
+    
+    if isinstance( data, tuple) :
+        return tuple( _redact_data_uris(item) for item in data )
+    
+    if isinstance( data, dict) :
+        return { key : _redact_data_uris(value) for key, value in data.items() }
+    
+    return data
+
+def write_to_json_string(
+    data   : Any,
+    indent : int | None = JSON_INDENT,
+    *,
+    redact_data_uris : bool = False,
+) -> str :
     """
     Serialize object as JSON string \\
     Args:
-        data   : Object to serialize
-        indent : Number of indentation spaces
+        data             : Object to serialize
+        indent           : Number of indentation spaces
+        redact_data_uris : Shorten `data:...;base64,...` strings when True
     Returns:
         JSON-compatible string
     """
-    return json.dumps( data,
-                       ensure_ascii = False,
-                       indent       = indent,
-                       separators   = (",",":") if indent is None else None )
+    if redact_data_uris :
+        data = _redact_data_uris(data)
+    
+    return json.dumps(
+        data,
+        ensure_ascii = False,
+        indent       = indent,
+        separators   = (",",":") if ( indent is None ) else None,
+    )
 
 def write_to_pseudo_json( data : str | Any) -> str :
     """
